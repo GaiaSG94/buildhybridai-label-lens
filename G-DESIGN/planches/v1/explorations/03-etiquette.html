@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Label Lens — Read · 03 Étiquette</title>
+<style>
+  :root{
+    --paper:#fafaf8; --ink:#111417; --mute:#5d6268; --hair:#cfcfca;
+    --local:#0f9d58; --cloud:#e8833a; --alert:#c81e1e;
+    --cond: "Arial Narrow", "Nimbus Sans Narrow", "Helvetica Neue Condensed", "Roboto Condensed", sans-serif;
+    --sans: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#e4e4df}
+  body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .board{width:1440px;height:900px;margin:0 auto;background:var(--paper);padding:28px 48px 32px;display:flex;flex-direction:column;gap:14px}
+
+  .top{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .top .mark{font-family:var(--cond);font-weight:700;font-size:20px;letter-spacing:.02em}
+  .top nav{display:flex;border:2px solid var(--ink)}
+  .top nav a{color:var(--ink);text-decoration:none;padding:7px 16px;border-left:2px solid var(--ink)}
+  .top nav a:first-child{border-left:0}
+  .top nav a.on{background:var(--ink);color:var(--paper)}
+  .top .eng{display:flex;gap:16px;color:var(--mute)}
+
+  /* the panel = a label */
+  .panel{flex:1;border:4px solid var(--ink);display:grid;grid-template-columns:1fr 470px;grid-template-rows:auto 1fr auto}
+  .cell{padding:16px 20px;border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);position:relative}
+  .cell:nth-child(2n){border-right:0}
+  .h{font-family:var(--cond);font-weight:700;font-size:15px;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
+  .name{display:grid;grid-template-columns:120px 1fr;gap:22px;align-items:center}
+  .thumb{width:120px;height:150px;background:#1b1d20;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .thumb svg{width:104px;transform:rotate(-2deg)}
+  h1{font-family:var(--cond);font-weight:700;font-size:76px;line-height:.86;letter-spacing:-.015em;text-transform:uppercase}
+  .meta{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:10px}
+
+  .tally{display:grid;grid-template-columns:1fr 1fr;padding:0}
+  .tally div{padding:16px 20px}
+  .tally div+div{border-left:2px solid var(--ink)}
+  .tally b{display:block;font-family:var(--cond);font-weight:700;font-size:96px;line-height:.85;letter-spacing:-.02em}
+  .tally span{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .tally .l b{color:var(--local)} .tally .c b{color:var(--cloud)}
+
+  .src{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;font:700 11px/1 var(--mono)}
+  .src.l{background:var(--local);color:#fff}
+  .src.c{border:2px solid var(--cloud);color:var(--cloud)}
+  .legend{display:flex;gap:14px;font:400 10.5px var(--mono);color:var(--mute);align-items:center}
+  .legend span{display:inline-flex;gap:6px;align-items:center}
+
+  .contains{background:var(--alert);color:#fff;padding:16px 16px;font-family:var(--cond);font-weight:700;font-size:33px;line-height:1;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+  .contains .src.l{background:#fff;color:var(--alert)}
+  .line{display:flex;justify-content:space-between;align-items:center;padding:16px 0;border-bottom:1px solid var(--hair);font-size:18px}
+  .line:last-child{border-bottom:0}
+  .line .k{font-family:var(--cond);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.04em;width:150px}
+  .line .v{flex:1;font-weight:500}
+  .why{font:400 10.5px var(--mono);color:var(--cloud)}
+  .ingr{font-size:17px;line-height:1.5}
+  .ingr b{font-weight:700;text-transform:uppercase;font-size:14px}
+
+  /* EU nutrition table */
+    table{width:100%;border-collapse:collapse}
+  thead th{font-family:var(--cond);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;text-align:left;padding:0 0 6px;border-bottom:6px solid var(--ink)}
+  thead th.r{text-align:right}
+  td{padding:11px 0;border-bottom:1px solid var(--ink);font-size:16px}
+  td.s{padding-left:16px;color:var(--mute)}
+  td.v{text-align:right;font-family:var(--cond);font-weight:700;font-size:24px}
+  td.v small{font:400 11px var(--mono);margin-left:3px}
+  td.p{width:36px;text-align:right}
+  tr.thick td{border-bottom-width:3px}
+  tr.cl td{background:rgba(232,131,58,.12)}
+
+  .foot{grid-column:1 / -1;border-bottom:0;border-right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 20px}
+  .btn{font:700 15px/1 var(--cond);text-transform:uppercase;letter-spacing:.06em;padding:12px 18px;border:2px solid var(--ink);background:var(--ink);color:var(--paper)}
+  .btn.g{background:transparent;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="board">
+  <div class="top">
+    <div class="mark">LABEL LENS <span style="font:400 11px var(--mono);color:var(--mute)">v1 · 03 Étiquette</span></div>
+    <nav><a href="#">Capture</a><a class="on" href="#">Read</a><a href="#">Compare</a><a href="#">History</a></nav>
+    <div class="eng"><span style="color:var(--local)">■ Gemini Nano · on device</span><span style="color:var(--cloud)">□ Gemini · cloud</span></div>
+  </div>
+
+  <div class="panel">
+    <!-- row 1 -->
+    <div class="cell name">
+      <div class="thumb"><svg viewBox="0 0 400 520" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+          <defs><filter id="blur"><feGaussianBlur stdDeviation="1.6"/></filter></defs>
+          <rect width="400" height="520" rx="6" fill="#f2ede2"/>
+          <text x="22" y="46" font-size="24" font-weight="700" fill="#2a2620">OAT &amp; HAZELNUT BAR</text>
+          <text x="22" y="68" font-size="11" fill="#5a544a">Baked cereal bar with honey · 40 g</text>
+          <line x1="22" y1="84" x2="378" y2="84" stroke="#2a2620"/>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="22" y="104"><tspan font-weight="700">Ingredients:</tspan> <tspan font-weight="700">oat</tspan> flakes 42%, roasted</text>
+            <text x="22" y="118"><tspan font-weight="700">hazelnuts</tspan> 12%, honey 10%, rice syrup, sunflower</text>
+            <text x="22" y="132">oil, whole <tspan font-weight="700">milk</tspan> powder, <tspan font-weight="700">soy</tspan>a lecithin (emulsifier),</text>
+            <text x="22" y="146">sea salt, natural vanilla flavouring.</text>
+            <text x="22" y="170" font-weight="700">Allergens in bold.</text>
+            <text x="22" y="190" filter="url(#blur)" opacity=".75">May contain traces of p...nuts and sesame.</text>
+          </g>
+          <rect x="22" y="212" width="356" height="200" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="30" y="230" font-weight="700">Nutrition</text><text x="370" y="230" text-anchor="end" font-weight="700">per 100 g</text>
+            <line x1="22" y1="238" x2="378" y2="238" stroke="#2a2620" stroke-width="2"/>
+            <text x="30" y="256">Energy</text><text x="370" y="256" text-anchor="end">1890 kJ / 452 kcal</text>
+            <text x="30" y="276">Fat</text><text x="370" y="276" text-anchor="end">21 g</text>
+            <text x="40" y="294">of which saturates</text><text x="370" y="294" text-anchor="end">3.1 g</text>
+            <text x="30" y="314">Carbohydrate</text><text x="370" y="314" text-anchor="end">54 g</text>
+            <text x="40" y="332">of which sugars</text><text x="370" y="332" text-anchor="end">22 g</text>
+            <text x="30" y="352">Fibre</text><text x="370" y="352" text-anchor="end">6.8 g</text>
+            <text x="30" y="372">Protein</text><text x="370" y="372" text-anchor="end">9.4 g</text>
+            <g filter="url(#blur)" opacity=".7"><text x="30" y="396">Salt</text><text x="370" y="396" text-anchor="end">0.31 g</text></g>
+          </g>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="22" y="440">Not suitable for children under 3 years (whole nuts).</text>
+            <text x="22" y="455">Store in a cool, dry place.</text>
+            <text x="22" y="488" font-weight="700">Best before end: 03 / 2027</text>
+          </g>
+          <rect x="278" y="470" width="100" height="32" fill="#2a2620"/>
+          <g fill="#f2ede2"><rect x="284" y="474" width="2" height="24"/><rect x="289" y="474" width="1" height="24"/><rect x="293" y="474" width="3" height="24"/><rect x="299" y="474" width="1" height="24"/><rect x="303" y="474" width="2" height="24"/><rect x="309" y="474" width="1" height="24"/><rect x="313" y="474" width="3" height="24"/><rect x="319" y="474" width="2" height="24"/><rect x="325" y="474" width="1" height="24"/><rect x="330" y="474" width="2" height="24"/><rect x="336" y="474" width="3" height="24"/><rect x="342" y="474" width="1" height="24"/><rect x="347" y="474" width="2" height="24"/><rect x="353" y="474" width="1" height="24"/><rect x="358" y="474" width="3" height="24"/><rect x="365" y="474" width="2" height="24"/><rect x="370" y="474" width="1" height="24"/></g>
+        </svg></div>
+      <div>
+        <h1>Oat &amp; hazelnut<br>bar · 40 g</h1>
+        <div class="meta">Read 18 Nov 2026, 14:02 · photo not stored, text only</div>
+      </div>
+    </div>
+    <div class="cell tally">
+      <div class="l"><b>12</b><span>fields read on device<br>1.8 s</span></div>
+      <div class="c"><b>2</b><span>cross-checked in cloud<br>0.9 s</span></div>
+    </div>
+
+    <!-- row 2 -->
+    <div class="cell">
+      <div class="h"><span>Allergens · EU 14</span><span class="legend"><span><i class="src l">L</i>read on device</span><span><i class="src c">C</i>cross-checked in cloud</span></span></div>
+      <div class="contains"><span>Contains: oats (gluten) · hazelnut · milk · soy</span><i class="src l">L</i></div>
+      <div class="line"><span class="k">May contain</span><span class="v">Peanut, sesame <span class="why">· line blurred on photo</span></span><i class="src c">C</i></div>
+      <div class="line" style="align-items:flex-start"><span class="k">Ingredients</span><p class="v ingr"><b>Oat</b> flakes 42%, roasted <b>hazelnuts</b> 12%, honey 10%, rice syrup, sunflower oil, whole <b>milk</b> powder, <b>soya</b> lecithin (emulsifier), sea salt, natural vanilla flavouring.</p><i class="src l" style="margin-left:16px">L</i></div>
+      <div class="line"><span class="k">Warnings</span><span class="v">Not suitable for children under 3 years (whole nuts)</span><i class="src l">L</i></div>
+      <div class="line"><span class="k">Storage</span><span class="v">Cool, dry place</span><i class="src l">L</i></div>
+      <div class="line"><span class="k">Best before end</span><span class="v">March 2027</span><i class="src l">L</i></div>
+    </div>
+    <div class="cell nut">
+      <table>
+        <thead><tr><th>Nutrition</th><th class="r">per 100 g</th><th class="r">src</th></tr></thead>
+        <tr class="thick"><td>Energy</td><td class="v">452<small>kcal</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td>Fat</td><td class="v">21<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td class="s">of which saturates</td><td class="v">3.1<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td>Carbohydrate</td><td class="v">54<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td class="s">of which sugars</td><td class="v">22<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td>Fibre</td><td class="v">6.8<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr><td>Protein</td><td class="v">9.4<small>g</small></td><td class="p"><i class="src l">L</i></td></tr>
+        <tr class="cl"><td>Salt <span class="why">· row blurred on photo</span></td><td class="v">0.31<small>g</small></td><td class="p"><i class="src c">C</i></td></tr>
+      </table>
+    </div>
+
+    <!-- row 3 -->
+    <div class="cell foot">
+      <span class="meta" style="margin:0">label-demo-07.jpg · on device 1.8 s · cloud 0.9 s · total 2.7 s</span>
+      <span style="display:flex;gap:10px"><button class="btn g">Save to history</button><button class="btn">Compare with another label</button></span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

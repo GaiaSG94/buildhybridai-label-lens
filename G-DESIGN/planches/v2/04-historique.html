@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Label Lens — History</title>
+<style>
+  :root{
+    --paper:#fafaf8; --card:#ffffff; --ink:#111417; --ink-2:#4a4f55; --ink-3:#8a8f94; --rule:#e3e3df; --stage:#1b1d20;
+    --local:#0f9d58; --cloud:#e8833a; --alert:#c81e1e;
+    --hatch:repeating-linear-gradient(-45deg,#e8833a 0 5px,#f2a165 5px 10px);
+    --hatch-soft:repeating-linear-gradient(-45deg,rgba(232,131,58,.16) 0 6px,rgba(232,131,58,.05) 6px 12px);
+    --wait:repeating-linear-gradient(90deg,#e3e3df 0 2px,transparent 2px 6px);
+    --sans: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#d9d9d4}
+  body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .board{width:1440px;height:900px;margin:0 auto;background:var(--paper);display:grid;grid-template-rows:56px 1fr;overflow:hidden}
+
+  /* ---- top bar: ink band ---- */
+  .top{background:var(--ink);color:var(--paper);display:grid;grid-template-columns:260px 1fr auto;align-items:center;padding:0 48px}
+  .mark{display:flex;align-items:center;gap:12px;font-weight:600;font-size:17px;letter-spacing:-.02em}
+  .mark small{font:400 11px var(--mono);color:#80868c;letter-spacing:0}
+  .logo{display:flex;height:22px}
+  .logo i{display:block;width:22px;height:22px;clip-path:polygon(7px 0,100% 0,100% 100%,7px 100%,0 50%)}
+  .logo i:first-child{background:var(--local)} .logo i:last-child{background:var(--hatch);width:12px;clip-path:none}
+  nav{display:flex;gap:6px;font-size:14px}
+  nav a{color:#9aa0a6;text-decoration:none;padding:7px 14px 7px 18px}
+  nav a.on{color:var(--ink);background:var(--paper);clip-path:polygon(9px 0,100% 0,100% 100%,9px 100%,0 50%);font-weight:500}
+  .engines{display:flex;gap:18px;font:400 11px var(--mono);color:#b9bec3}
+  .engines i{display:inline-block;width:8px;height:8px;margin-right:7px;vertical-align:0}
+
+  /* ---- motif 1: the tag (label inside the label) ---- */
+  .tag{position:relative;display:inline-flex;align-items:center;height:20px;padding:0 8px 0 15px;font:600 10px/1 var(--mono);letter-spacing:.08em;white-space:nowrap;
+       clip-path:polygon(7px 0,100% 0,100% 100%,7px 100%,0 50%)}
+  .tag::before{content:"";position:absolute;left:6px;top:50%;width:4px;height:4px;margin-top:-2px;border-radius:50%;background:var(--hole,var(--paper))}
+  .tag.l{background:var(--local);color:#fff}
+  .tag.c{background:var(--hatch);color:#1a1006}
+  .tag.w{background:var(--rule);color:var(--ink-2)}
+  .tag.n{background:var(--ink);color:var(--paper)}
+  .tag.inv{background:#fff;color:var(--alert)}
+
+  /* ---- motif 2: hybrid proportion bar ---- */
+  .hbar{display:flex;height:64px}
+  .hbar > div{display:flex;align-items:center;gap:12px;padding:0 16px;min-width:0;overflow:hidden}
+  .hbar b{font-weight:500;font-size:38px;letter-spacing:-.03em;line-height:1}
+  .hbar span{font:400 11px/1.35 var(--mono)}
+  .hbar .l{background:var(--local);color:#fff}
+  .hbar .c{background:var(--hatch);color:#1a1006}
+  .hbar .w{background:var(--rule);color:var(--ink-2)}
+  .hbar.mini{height:8px} .hbar.mini > div{padding:0}
+
+  /* ---- photo stage with numbered read zones ---- */
+  .stage{position:relative;background:var(--stage);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .stage::after{content:"";position:absolute;inset:14px;border:1px solid #2c3035;pointer-events:none}
+  .lw{position:relative;width:380px;height:494px;transform:rotate(-2.2deg)}
+  .lw svg{width:380px;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.5))}
+  .zone{position:absolute;border:2px solid var(--local);background:rgba(15,157,88,.10)}
+  .zone.c{border:2px dashed var(--cloud);background:var(--hatch-soft)}
+  .zone.w{border:1.5px dotted #9aa0a6;background:none}
+  .zone .tag{position:absolute;left:-2px;top:-21px;--hole:var(--stage)}
+  .smeta{position:absolute;left:28px;right:28px;bottom:26px;display:flex;justify-content:space-between;font:400 11px var(--mono);color:#80868c;z-index:2}
+  .scan{position:absolute;left:-14px;right:-14px;height:3px;background:var(--local);box-shadow:0 0 22px 6px rgba(15,157,88,.5)}
+
+  /* ---- type ---- */
+  h1{font-weight:500;font-size:58px;line-height:.92;letter-spacing:-.035em}
+  .sub{font:400 12px var(--mono);color:var(--ink-2);margin-top:12px}
+  .lbl{font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* ---- motif 3: field card with heavy top rule + zone number ---- */
+  .fb{background:var(--card);border-top:3px solid var(--ink);padding:12px 16px 14px;--hole:var(--card)}
+  .fb.cl{background:var(--hatch-soft);border-top-color:var(--cloud);--hole:#fcefe4}
+  .fb.wt{background:transparent;border-top:3px dotted var(--ink-3);--hole:var(--paper)}
+  .fh{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .fh .lbl{flex:1}
+  .fv{font-size:18px;font-weight:500;letter-spacing:-.01em;line-height:1.25}
+  .why{font:400 11px var(--mono);color:#b5591a;margin-top:6px}
+  .ingr{font-size:15px;line-height:1.5}
+  .ingr b{font-weight:700}
+  .skel{display:block;height:12px;width:60%;background:var(--wait)}
+  .skel.c{background:var(--hatch-soft)}
+
+  /* allergen block = the one red use */
+  .alg{background:var(--alert);color:#fff;padding:14px 16px 16px;--hole:var(--alert)}
+  .alg .fh .lbl{color:rgba(255,255,255,.75)}
+  .alg .tag.n{background:#fff;color:var(--alert)}
+  .alg p{font-size:25px;font-weight:500;letter-spacing:-.02em;line-height:1.12}
+
+  /* nutrition card: EU-table rules on an ink header */
+  .nut{background:var(--card);border:2px solid var(--ink);--hole:var(--card)}
+  .nut .nh{background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:10px;padding:10px 14px;--hole:var(--ink)}
+  .nut .nh .lbl{color:#c4c8cc;flex:1}
+  .nut table{width:100%;border-collapse:collapse}
+  .nut td{padding:9px 14px;border-top:1px solid var(--rule);vertical-align:middle}
+  .nut tr:first-child td{border-top:0}
+  .nut tr.thick td{border-bottom:4px solid var(--ink)}
+  .nut td.k{font-size:14px;color:var(--ink-2)} .nut td.k.s{padding-left:28px}
+  .nut td.v{text-align:right;font-size:21px;font-weight:500;letter-spacing:-.02em;white-space:nowrap}
+  .nut td.v small{font:400 11px var(--mono);color:var(--ink-3);margin-left:3px;letter-spacing:0}
+  .nut td.p{width:90px;text-align:right;padding-left:0}
+  .nut tr.cl td{background:var(--hatch-soft)} .nut tr.cl{--hole:#fcefe4}
+
+  .btn{font:500 14px/1 var(--sans);padding:14px 20px 14px 24px;border:0;background:var(--ink);color:var(--paper);clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%)}
+  .btn.g{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 2px var(--ink);clip-path:none;padding:14px 20px}
+  .actions{display:flex;gap:10px}
+
+  main{display:grid;grid-template-columns:400px 1fr;gap:40px;padding:24px 48px}
+  .vers{display:flex;flex-direction:column;gap:16px}
+  .ver{padding:26px 22px 22px;--hole:var(--paper)}
+  .ver .t{font-size:30px;font-weight:500;letter-spacing:-.02em}
+  .ver .m{font:400 11px var(--mono);margin-top:4px;opacity:.8}
+  .ver .hbar.mini{margin:12px 0 8px}
+  .ver .row{display:flex;justify-content:space-between;align-items:center}
+  .ver.cur{background:var(--ink);color:var(--paper);--hole:var(--ink)}
+  .ver.ref{background:var(--card);box-shadow:inset 0 0 0 2px var(--ink);--hole:var(--card)}
+  .ver.old{box-shadow:inset 0 0 0 1px #c9c9c3;color:var(--ink-2)}
+  .count{display:flex;gap:0}
+  .count div{padding:12px 18px;min-width:130px}
+  .count b{display:block;font-size:40px;font-weight:500;letter-spacing:-.03em;line-height:1}
+  .count span{font:400 11px var(--mono)}
+  .count .on{background:var(--ink);color:var(--paper)}
+  .count .off{box-shadow:inset 0 0 0 2px var(--ink)}
+  .head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px}
+  .dt{display:grid;grid-template-columns:170px 1fr 40px 1fr 100px;align-items:stretch}
+  .dt > *{padding:24px 0;border-top:1px solid var(--rule);display:flex;align-items:center}
+  .dt .hd{font:400 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border-top:3px solid var(--ink);padding:10px 0}
+  .dt .k{font-size:14px;color:var(--ink-2)}
+  .dt .o{font-size:17px;color:var(--ink-3);text-decoration:line-through;text-decoration-color:#bcbcb6}
+  .dt .ar{font:400 16px var(--mono);color:var(--ink-3);justify-content:center}
+  .dt .nw{font-size:21px;font-weight:500;letter-spacing:-.01em;background:var(--card);padding-left:14px;border-left:3px solid var(--ink)}
+  .dt .nw.al{background:var(--alert);color:#fff;border-left-color:var(--alert)}
+  .dt .p{justify-content:flex-end;--hole:var(--paper)}
+  .dt .p.cl{--hole:var(--paper)}
+  .same{padding:16px 0;border-top:3px solid var(--ink);font-size:14px;color:var(--ink-2);display:flex;justify-content:space-between;margin-bottom:24px}
+
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="top">
+    <div class="mark"><span class="logo"><i></i><i></i></span>Label Lens<small>v3 · History</small></div>
+    <nav><a href="#">Capture</a><a href="#">Read</a><a href="#">Compare</a><a class="on" href="#">History</a></nav>
+    <div class="engines"><span><i style="background:var(--local)"></i>Gemini Nano · on device · ready</span><span><i style="background:var(--hatch)"></i>Gemini · cloud · online</span></div>
+  </header>
+  <main>
+    <section class="vers">
+      <span class="lbl">Label versions · 3 · newest first</span>
+      <div class="ver cur"><div class="row"><span class="t">18 Nov 2026</span><span class="tag" style="background:var(--paper);color:var(--ink)">CURRENT</span></div>
+        <div class="hbar mini"><div class="l" style="flex:12"></div><div class="c" style="flex:2"></div></div><div class="row m"><span>12 on device · 2 cloud</span><span>5 changes</span></div></div>
+      <div class="ver ref"><div class="row"><span class="t">02 Sep 2026</span><span class="tag n">COMPARED</span></div>
+        <div class="hbar mini"><div class="l" style="flex:13"></div><div class="c" style="flex:1"></div></div><div class="row m"><span>13 on device · 1 cloud</span><span>3 changes</span></div></div>
+      <div class="ver old"><div class="row"><span class="t">14 Mar 2026</span><span class="tag w">FIRST READ</span></div>
+        <div class="hbar mini"><div class="l" style="flex:14"></div></div><div class="row m"><span>14 on device · 0 cloud</span><span>—</span></div></div>
+      <span class="lbl" style="margin-top:6px">Text only · photos are never stored</span>
+    </section>
+
+    <section>
+      <div class="head">
+        <div><h1>Oat &amp; hazelnut<br>bar, 40 g</h1><div class="sub">02 Sep 2026 → 18 Nov 2026</div></div>
+        <div class="count"><div class="on"><b>5</b><span>changed</span></div><div class="off"><b>9</b><span>unchanged</span></div></div>
+      </div>
+      <div class="dt">
+        <div class="hd">Field</div><div class="hd">02 Sep 2026</div><div class="hd"></div><div class="hd">18 Nov 2026</div><div class="hd" style="justify-content:flex-end">Source</div>
+        <div class="k">May contain</div><div class="o">Peanut</div><div class="ar">→</div><div class="nw al">Peanut, sesame · new trace</div><div class="p"><span class="tag c">CLOUD</span></div>
+        <div class="k">Ingredients</div><div class="o">hazelnuts 10%</div><div class="ar">→</div><div class="nw">hazelnuts 12%</div><div class="p"><span class="tag l">LOCAL</span></div>
+        <div class="k">Energy · 100 g</div><div class="o">446 kcal</div><div class="ar">→</div><div class="nw">452 kcal</div><div class="p"><span class="tag l">LOCAL</span></div>
+        <div class="k">Sugars · 100 g</div><div class="o">24 g</div><div class="ar">→</div><div class="nw">22 g</div><div class="p"><span class="tag l">LOCAL</span></div>
+        <div class="k">Best before end</div><div class="o">December 2026</div><div class="ar">→</div><div class="nw">March 2027</div><div class="p"><span class="tag l">LOCAL</span></div>
+      </div>
+      <div class="same"><span>Unchanged: contains, fat, saturates, carbohydrate, fibre, protein, salt, warnings, storage</span><span class="lbl">9</span></div>
+      <div class="actions"><button class="btn">Open 18 Nov 2026 in Read</button><button class="btn g">Compare with another version</button></div>
+    </section>
+  </main>
+</div>
+</body>
+</html>
