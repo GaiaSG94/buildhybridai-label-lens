@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Label Lens — Capture</title>
+<style>
+  :root{
+    --paper:#fafaf8; --ink:#111417; --ink-2:#4a4f55; --ink-3:#8a8f94; --rule:#e3e3df;
+    --local:#0f9d58; --cloud:#e8833a; --alert:#c81e1e;
+    --sans: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#e9e9e5}
+  body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  .board{width:1440px;height:900px;margin:0 auto;background:var(--paper);display:grid;grid-template-rows:64px 1fr;overflow:hidden}
+
+  /* top bar */
+  .top{display:grid;grid-template-columns:240px 1fr auto;align-items:center;padding:0 48px;border-bottom:1px solid var(--rule)}
+  .mark{font-weight:600;font-size:17px;letter-spacing:-.02em}
+  .mark span{font-family:var(--mono);font-weight:400;font-size:11px;color:var(--ink-3);margin-left:8px;letter-spacing:0}
+  nav{display:flex;gap:32px;font-size:14px;color:var(--ink-3)}
+  nav a{color:inherit;text-decoration:none;padding:22px 0;border-bottom:2px solid transparent}
+  nav a.on{color:var(--ink);border-color:var(--ink)}
+  .engines{display:flex;gap:20px;font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+  .engines i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px}
+
+  main{display:grid;grid-template-columns:500px 1fr;gap:56px;padding:32px 48px 28px}
+
+  /* photo */
+  .shot{position:relative;background:#1b1d20;border-radius:6px;height:660px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .lw{position:relative;width:380px;height:494px;transform:rotate(-2.2deg)}
+  .lw svg{width:380px;display:block;filter:drop-shadow(0 18px 30px rgba(0,0,0,.45))}
+  .zone{position:absolute;border:1.5px solid var(--local);border-radius:3px}
+  .zone.c{border:1.5px dashed var(--cloud)}
+  .zone b{position:absolute;top:-1px;left:-1px;transform:translateY(-100%);font:500 10px/1 var(--mono);background:var(--local);color:#fff;padding:3px 5px;border-radius:2px 2px 0 0}
+  .zone.c b{background:var(--cloud)}
+  .shotmeta{display:flex;justify-content:space-between;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+  /* right side */
+  .head{display:grid;grid-template-columns:1fr auto;align-items:end;border-bottom:1px solid var(--ink);padding-bottom:20px}
+  h1{font-weight:500;font-size:62px;line-height:.92;letter-spacing:-.035em}
+  .sub{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:14px}
+  .tally{display:flex;gap:28px;text-align:right}
+  .tally div{font-family:var(--mono);font-size:11px;color:var(--ink-2);line-height:1.4}
+  .tally strong{display:block;font-family:var(--sans);font-weight:500;font-size:44px;letter-spacing:-.03em;line-height:1}
+  .tally .l strong{color:var(--local)} .tally .c strong{color:var(--cloud)}
+
+  .chip{display:inline-flex;align-items:center;gap:5px;font:500 10px/1 var(--mono);letter-spacing:.06em;padding:4px 6px 4px 5px;border-radius:3px;vertical-align:middle;white-space:nowrap}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .chip.l{color:var(--local);background:rgba(15,157,88,.09)}
+  .chip.c{color:var(--cloud);background:rgba(232,131,58,.12)}
+
+  .cols{display:grid;grid-template-columns:1fr 330px;gap:48px;margin-top:22px}
+  .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;display:flex;justify-content:space-between}
+
+  .allergen{border-left:4px solid var(--alert);padding:2px 0 2px 16px;margin-bottom:12px}
+  .allergen p{font-size:24px;font-weight:500;letter-spacing:-.02em;line-height:1.15}
+  .allergen p em{font-style:normal;color:var(--alert)}
+  .row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:9px 0;border-top:1px solid var(--rule)}
+  .row .k{font-size:14px;color:var(--ink-2)}
+  .row .v{font-size:17px;font-weight:500;letter-spacing:-.01em}
+  .note{font-family:var(--mono);font-size:11px;color:var(--cloud);margin-top:4px}
+  .ingr{font-size:15px;line-height:1.5;color:var(--ink);margin-top:2px}
+  .ingr b{font-weight:600}
+  .block{margin-top:20px}
+
+  table{width:100%;border-collapse:collapse}
+  td{padding:9px 0;border-top:1px solid var(--rule);vertical-align:baseline}
+  td.k{font-size:14px;color:var(--ink-2)}
+  td.k.sub2{padding-left:14px}
+  td.v{text-align:right;font-size:20px;font-weight:500;letter-spacing:-.02em}
+  td.v small{font-family:var(--mono);font-size:11px;font-weight:400;color:var(--ink-3);margin-left:3px;letter-spacing:0}
+  td.p{text-align:right;width:76px}
+  tr.cl td{background:rgba(232,131,58,.06)}
+
+  .actions{display:flex;gap:12px;margin-top:20px}
+  .btn{font:500 14px/1 var(--sans);padding:13px 18px;border-radius:4px;border:1px solid var(--ink);background:var(--ink);color:var(--paper)}
+  .btn.g{background:transparent;color:var(--ink)}
+
+  .chip.wait{color:var(--ink-3);background:#f0f0ec}
+  .chip.wait::before{background:transparent;border:1.5px solid currentColor;width:4px;height:4px}
+  .chip.cw{color:var(--cloud);background:transparent;border:1px dashed var(--cloud)}
+  .skel{display:block;height:10px;width:140px;border-radius:2px;background:var(--rule);margin-top:7px}
+  .skel.c{background:rgba(232,131,58,.3)}
+  .state{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .state.c{color:var(--cloud)}
+  .diff{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+
+  .scan{position:absolute;left:-10px;right:-10px;top:392px;height:2px;background:var(--local);box-shadow:0 0 18px 4px rgba(15,157,88,.45)}
+  .drop{display:grid;grid-template-columns:1fr auto;align-items:center;gap:24px;border:1.5px dashed #c9c9c3;border-radius:6px;padding:18px 22px;margin-top:22px}
+  .drop strong{display:block;font-size:17px;font-weight:500;letter-spacing:-.01em}
+  .drop span{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .drop .actions{margin:0}
+  .offline{margin-top:18px;padding-top:12px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .cols{margin-top:18px}
+
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="top">
+    <div class="mark">Label Lens<span>v1 · Capture</span></div>
+    <nav><a class="on" href="#">Capture</a><a href="#">Read</a><a href="#">Compare</a><a href="#">History</a></nav>
+    <div class="engines"><span><i style="background:var(--local)"></i>On-device · Gemini Nano ready</span><span><i style="background:var(--cloud)"></i>Cloud · Gemini online</span></div>
+  </header>
+  <main>
+    <section>
+      <div class="shot">
+        <div class="lw"><svg viewBox="0 0 400 520" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif">
+          <defs><filter id="blur"><feGaussianBlur stdDeviation="1.6"/></filter></defs>
+          <rect width="400" height="520" rx="6" fill="#f2ede2"/>
+          <text x="22" y="46" font-size="24" font-weight="700" fill="#2a2620">OAT &amp; HAZELNUT BAR</text>
+          <text x="22" y="68" font-size="11" fill="#5a544a">Baked cereal bar with honey · 40 g</text>
+          <line x1="22" y1="84" x2="378" y2="84" stroke="#2a2620"/>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="22" y="104"><tspan font-weight="700">Ingredients:</tspan> <tspan font-weight="700">oat</tspan> flakes 42%, roasted</text>
+            <text x="22" y="118"><tspan font-weight="700">hazelnuts</tspan> 12%, honey 10%, rice syrup, sunflower</text>
+            <text x="22" y="132">oil, whole <tspan font-weight="700">milk</tspan> powder, <tspan font-weight="700">soy</tspan>a lecithin (emulsifier),</text>
+            <text x="22" y="146">sea salt, natural vanilla flavouring.</text>
+            <text x="22" y="170" font-weight="700">Allergens in bold.</text>
+            <text x="22" y="190" filter="url(#blur)" opacity=".75">May contain traces of p...nuts and sesame.</text>
+          </g>
+          <rect x="22" y="212" width="356" height="200" fill="none" stroke="#2a2620" stroke-width="1.4"/>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="30" y="230" font-weight="700">Nutrition</text><text x="370" y="230" text-anchor="end" font-weight="700">per 100 g</text>
+            <line x1="22" y1="238" x2="378" y2="238" stroke="#2a2620" stroke-width="2"/>
+            <text x="30" y="256">Energy</text><text x="370" y="256" text-anchor="end">1890 kJ / 452 kcal</text>
+            <text x="30" y="276">Fat</text><text x="370" y="276" text-anchor="end">21 g</text>
+            <text x="40" y="294">of which saturates</text><text x="370" y="294" text-anchor="end">3.1 g</text>
+            <text x="30" y="314">Carbohydrate</text><text x="370" y="314" text-anchor="end">54 g</text>
+            <text x="40" y="332">of which sugars</text><text x="370" y="332" text-anchor="end">22 g</text>
+            <text x="30" y="352">Fibre</text><text x="370" y="352" text-anchor="end">6.8 g</text>
+            <text x="30" y="372">Protein</text><text x="370" y="372" text-anchor="end">9.4 g</text>
+            <g filter="url(#blur)" opacity=".7"><text x="30" y="396">Salt</text><text x="370" y="396" text-anchor="end">0.31 g</text></g>
+          </g>
+          <g font-size="9.6" fill="#2a2620">
+            <text x="22" y="440">Not suitable for children under 3 years (whole nuts).</text>
+            <text x="22" y="455">Store in a cool, dry place.</text>
+            <text x="22" y="488" font-weight="700">Best before end: 03 / 2027</text>
+          </g>
+          <rect x="278" y="470" width="100" height="32" fill="#2a2620"/>
+          <g fill="#f2ede2"><rect x="284" y="474" width="2" height="24"/><rect x="289" y="474" width="1" height="24"/><rect x="293" y="474" width="3" height="24"/><rect x="299" y="474" width="1" height="24"/><rect x="303" y="474" width="2" height="24"/><rect x="309" y="474" width="1" height="24"/><rect x="313" y="474" width="3" height="24"/><rect x="319" y="474" width="2" height="24"/><rect x="325" y="474" width="1" height="24"/><rect x="330" y="474" width="2" height="24"/><rect x="336" y="474" width="3" height="24"/><rect x="342" y="474" width="1" height="24"/><rect x="347" y="474" width="2" height="24"/><rect x="353" y="474" width="1" height="24"/><rect x="358" y="474" width="3" height="24"/><rect x="365" y="474" width="2" height="24"/><rect x="370" y="474" width="1" height="24"/></g>
+        </svg>
+          <div class="zone" style="left:14px;top:84px;width:352px;height:62px"><b>01 INGREDIENTS</b></div>
+          <div class="zone c" style="left:14px;top:167px;width:280px;height:22px"><b>02 MAY CONTAIN</b></div>
+          <div class="zone" style="left:18px;top:200px;width:346px;height:162px"><b>03 NUTRITION</b></div>
+          <div class="zone c" style="left:18px;top:363px;width:346px;height:22px"><b>04 SALT</b></div>
+          <div class="scan"></div>
+        </div>
+      </div>
+      <div class="shotmeta"><span>label-demo-07.jpg · reading on device · 1.2 s</span><span>photo not stored · text only</span></div>
+    </section>
+
+    <section>
+      <div class="head">
+        <div>
+          <h1>Reading<br>the label</h1>
+          <div class="sub">On device first · unclear fields go to cloud</div>
+        </div>
+        <div class="tally">
+          <div class="l"><strong>7</strong>read<br>on device</div>
+          <div class="c"><strong>2</strong>cross-checking<br>in cloud</div>
+        </div>
+      </div>
+
+      <div class="drop">
+        <div><strong>Drop another label photo, or take one</strong><span>JPEG or PNG · read on this device first</span></div>
+        <div class="actions"><button class="btn">Use camera</button><button class="btn g">Choose file</button></div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div class="lbl"><span>Allergens · EU 14</span><span class="chip l">LOCAL</span></div>
+          <div class="allergen"><p>Contains <em>oats (gluten), hazelnut, milk, soy</em></p></div>
+          <div class="row">
+            <div><div class="k">May contain</div><span class="skel c"></span><div class="state c" style="margin-top:6px">Blurred on photo · cross-checking</div></div>
+            <span class="chip cw">CLOUD</span>
+          </div>
+          <div class="block">
+            <div class="lbl"><span>Ingredients</span><span class="chip l">LOCAL</span></div>
+            <p class="ingr"><b>Oat</b> flakes 42%, roasted <b>hazelnuts</b> 12%, honey 10%, rice syrup, sunflower oil, whole <b>milk</b> powder, <b>soya</b> lecithin (emulsifier), sea salt, natural vanilla flavouring.</p>
+          </div>
+          <div class="block">
+            <div class="row"><div><div class="k">Warnings</div><span class="skel"></span></div><span class="chip wait">READING</span></div>
+            <div class="row"><div><div class="k">Best before end</div><span class="skel" style="width:90px"></span></div><span class="chip wait">READING</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="lbl"><span>Nutrition · per 100 g</span></div>
+          <table>
+            <tr><td class="k">Energy</td><td class="v">452<small>kcal</small></td><td class="p"><span class="chip l">LOCAL</span></td></tr>
+            <tr><td class="k">Fat</td><td class="v">21<small>g</small></td><td class="p"><span class="chip l">LOCAL</span></td></tr>
+            <tr><td class="k sub2">saturates</td><td class="v">3.1<small>g</small></td><td class="p"><span class="chip l">LOCAL</span></td></tr>
+            <tr><td class="k">Carbohydrate</td><td class="v">54<small>g</small></td><td class="p"><span class="chip l">LOCAL</span></td></tr>
+            <tr><td class="k sub2">sugars</td><td class="v">22<small>g</small></td><td class="p"><span class="chip l">LOCAL</span></td></tr>
+            <tr><td class="k">Fibre</td><td class="v"><span class="skel" style="width:48px;margin-left:auto"></span></td><td class="p"><span class="chip wait">READING</span></td></tr>
+            <tr><td class="k">Protein</td><td class="v"><span class="skel" style="width:48px;margin-left:auto"></span></td><td class="p"><span class="chip wait">READING</span></td></tr>
+            <tr class="cl"><td class="k">Salt</td><td class="v"><span class="skel c" style="width:48px;margin-left:auto"></span></td><td class="p"><span class="chip cw">CLOUD</span></td></tr>
+          </table>
+          <div class="state c" style="margin-top:8px">Salt row blurred on photo · cross-checking</div>
+        </div>
+      </div>
+      <div class="offline">Offline: fields keep being read on device · cloud cross-check waits for network</div>
+    </section>
+  </main>
+</div>
+</body>
+</html>
