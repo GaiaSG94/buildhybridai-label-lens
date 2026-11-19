@@ -15,7 +15,8 @@ GUARD_FILES = (
 )
 GUARD_FLAG = "HACK_ALLOW_GUARD_BUMP"
 FORBIDDEN_PATTERNS = (
-    (r"--force(?!-with-lease)", "push force interdit (utilise --force-with-lease)", None),
+    # Concatene pour que la garde ne se detecte pas elle-meme dans un diff.
+    (r"--" r"force(?!-with-lease)", "push force interdit (utilise --force-with-lease)", None),
 )
 
 
