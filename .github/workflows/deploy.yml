@@ -1,0 +1,52 @@
+name: deploy
+
+# Deploiement Firebase Hosting du label de demo.
+# Prerequis (une fois, dans les reglages du repo) :
+#   - Secret  FIREBASE_TOKEN   : token CI genere par `npx firebase-tools login:ci`
+#   - Var     FIREBASE_PROJECT_ID : ID du projet Firebase (non secret)
+# Le build lit les VITE_FIREBASE_* depuis l'environnement GitHub : renseigner
+# egalement les secrets VITE_FIREBASE_API_KEY / VITE_FIREBASE_APP_ID / etc.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build (variables Firebase depuis les secrets/vars du repo)
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_APPCHECK_SITE_KEY: ${{ vars.VITE_APPCHECK_SITE_KEY }}
+          VITE_CLOUD_MODEL: gemini-3.5-flash-lite
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Deploy Hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: npx firebase-tools deploy --only hosting --project ${{ vars.FIREBASE_PROJECT_ID }} --non-interactive

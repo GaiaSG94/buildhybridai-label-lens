@@ -1,0 +1,8 @@
+# Copier vers .firebaserc et remplacer <project-id> par l'ID du projet Firebase.
+# L'ID n'est pas un secret, mais chaque repo a son projet : on ne versionne pas
+# le fichier final pour eviter les confusions entre environnements.
+{
+  "projects": {
+    "default": "<project-id>"
+  }
+}
