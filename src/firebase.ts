@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { initializeAppCheck, ReCaptchaV3Provider, type AppCheck } from 'firebase/app-check';
+import { initializeAppCheck, ReCaptchaV3Provider, CustomProvider, type AppCheck } from 'firebase/app-check';
 import { getAuth, signInAnonymously, type Auth } from 'firebase/auth';
 import { getAI, AgentPlatformBackend, GoogleAIBackend, type AI } from 'firebase/ai';
 import { isConfigured, loadConfig, type AppConfig } from './config';
@@ -38,7 +38,16 @@ export function initFirebase(config: AppConfig = loadConfig()): Services | null 
 }
 
 function initAppCheck(app: FirebaseApp, config: AppConfig): AppCheck | undefined {
-  if (config.appcheckDebug) window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+  if (config.appcheckDebug) {
+    // Local development: the debug provider prints the token to register in
+    // the Firebase console (App Check > Apps > Manage debug tokens). The
+    // provider is never called in debug mode, so a stub is enough.
+    window.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    const stub = new CustomProvider({
+      getToken: () => Promise.reject(new Error('App Check debug provider is active.')),
+    });
+    return initializeAppCheck(app, { provider: stub });
+  }
   if (!config.appcheckSiteKey || !/^[A-Za-z0-9_-]{20,}$/.test(config.appcheckSiteKey)) return undefined;
   return initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(config.appcheckSiteKey),
